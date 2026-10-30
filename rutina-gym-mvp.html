@@ -17,6 +17,7 @@ button { width:100%; padding:13px; border:none; border-radius:10px; font-size:1r
 .btn-primary { background:var(--bordo); color:white; }
 .btn-secondary { background:#e5e7eb; color:var(--text); }
 .btn-ok { background:var(--ok); color:white; }
+.btn-blue { background:var(--blue); color:white; }
 .timer { font-size:3.2rem; font-weight:700; text-align:center; margin:8px 0; color:var(--bordo); }
 .timer.rest { color:var(--blue); }
 .exercise-name { font-size:1.25rem; font-weight:700; color:var(--bordo); }
@@ -59,6 +60,7 @@ label { display:block; margin-top:10px; font-size:0.9rem; }
         <button class="btn-secondary" id="btnPause" onclick="toggleTimer()">Pausar</button>
         <button class="btn-primary" id="btnFinish" onclick="finishSet()">Terminé la serie</button>
       </div>
+      <button class="btn-blue hidden" id="btnNext" onclick="goNext()">Siguiente</button>
     </div>
     <div class="card" id="inputsCard">
       <div id="weightArea"></div>
@@ -220,13 +222,34 @@ function startRest(sec) {
   document.getElementById("timer").className = "timer rest";
   document.getElementById("btnPause").disabled = false;
   document.getElementById("btnPause").textContent = "Pausar";
+  document.getElementById("btnFinish").textContent = "Descansando...";
+  document.getElementById("btnFinish").disabled = true;
   updateTimer();
   state.timer = setInterval(() => {
     if (!state.isPaused && state.seconds > 0) {
-      state.seconds--; updateTimer();
-      if (state.seconds === 0) { clearInterval(state.timer); playBeep(); nextSetOrExercise(); }
+      state.seconds--;
+      updateTimer();
+      if (state.seconds === 0) {
+        clearInterval(state.timer);
+        playBeep();
+        nextSetOrExercise();
+      }
     }
   }, 1000);
+}
+
+function nextSetOrExercise() {
+  const ex = ROUTINE.exercises[state.currentEx];
+  if (!ex) { endSession(); return; }
+
+  if (state.currentSet < ex.sets) {
+    state.currentSet++;
+  } else {
+    state.currentEx++;
+    state.currentSet = 1;
+    state.chosenOption = null;
+  }
+  renderExercise();
 }
 
 function updateTimer() {
@@ -248,46 +271,23 @@ function finishSet() {
   const reps = repsEl ? repsEl.value : ex.reps;
   state.logs.push({ exercise: state.chosenOption || ex.name, set: state.currentSet, weight, reps, rating: state.selectedRating });
 
-  // Adjust next set suggestion based on rating
   if (state.selectedRating <= 2 && ex.weight > 0) ex.weight = Math.round((ex.weight * 1.05) * 2) / 2;
   if (state.selectedRating >= 4 && ex.weight > 0) ex.weight = Math.max(0, Math.round((ex.weight * 0.9) * 2) / 2);
 
   clearInterval(state.timer);
+  document.getElementById("btnFinish").classList.add("hidden");
+  document.getElementById("btnNext").classList.remove("hidden");
+  document.getElementById("btnNext").textContent = "Siguiente";
   startRest(ex.rest);
 }
 
-function nextSetOrExercise() {
-  const ex = ROUTINE.exercises[state.currentEx];
-  if (state.currentSet < ex.sets) {
-    state.currentSet++;
-  } else {
-    state.currentEx++;
-    state.currentSet = 1;
-    state.chosenOption = null;
-  }
-  renderExercise();
-}
-
-function skipExercise() {
-  if (confirm("¿Saltar este ejercicio?")) {
-    state.currentEx++; state.currentSet = 1; state.chosenOption = null;
-    clearInterval(state.timer);
-    renderExercise();
-  }
-}
-
-function endSession() {
+function goNext() {
   clearInterval(state.timer);
-  document.getElementById("workout").classList.add("hidden");
-  document.getElementById("summary").classList.remove("hidden");
-  let html = `<p>Series registradas: ${state.logs.length}</p><ul>`;
-  state.logs.forEach(l => { html += `<li>${l.exercise} · serie ${l.set}: ${l.weight ? l.weight + " kg × " : ""}${l.reps} · dif. ${l.rating}/5</li>`; });
-  html += "</ul>";
-  document.getElementById("summaryContent").innerHTML = html;
-  localStorage.setItem("lastSession", JSON.stringify({ date: new Date().toISOString(), logs: state.logs }));
+  document.getElementById("btnNext").classList.add("hidden");
+  document.getElementById("btnFinish").classList.remove("hidden");
+  document.getElementById("btnFinish").textContent = "Terminé la serie";
+  document.getElementById("btnFinish").disabled = false;
+  nextSetOrExercise();
 }
 
-initPreview();
-</script>
-</body>
-</html>
+function startRest
