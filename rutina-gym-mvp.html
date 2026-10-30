@@ -3,48 +3,60 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Rutina Gym MVP</title>
+<title>Rutina Gym</title>
 <style>
-:root { --bg:#0f172a; --card:#1e293b; --accent:#38bdf8; --text:#e2e8f0; --muted:#94a3b8; --ok:#22c55e; --warn:#f59e0b; }
-* { box-sizing:border-box; }
-body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--text); }
-.container { max-width:480px; margin:0 auto; padding:16px; }
-h1 { font-size:1.4rem; margin:0 0 8px; }
-h2 { font-size:1.1rem; margin:0 0 12px; color:var(--accent); }
-.card { background:var(--card); border-radius:16px; padding:16px; margin-bottom:12px; }
-button { width:100%; padding:14px; border:none; border-radius:12px; font-size:1rem; font-weight:600; cursor:pointer; margin-top:8px; }
-.btn-primary { background:var(--accent); color:#0f172a; }
-.btn-secondary { background:#334155; color:var(--text); }
-.btn-ok { background:var(--ok); color:#0f172a; }
-.btn-warn { background:var(--warn); color:#0f172a; }
-.timer { font-size:3.5rem; font-weight:700; text-align:center; letter-spacing:-1px; margin:12px 0; }
-.timer.rest { color:var(--warn); }
-.timer.work { color:var(--ok); }
-.exercise-name { font-size:1.3rem; font-weight:700; margin-bottom:4px; }
-.meta { color:var(--muted); font-size:0.95rem; margin-bottom:12px; }
-.row { display:flex; gap:8px; }
-.row button { flex:1; }
-input, select { width:100%; padding:12px; border-radius:10px; border:1px solid #334155; background:#0f172a; color:var(--text); font-size:1rem; margin-top:6px; }
-.progress { height:6px; background:#334155; border-radius:3px; margin:8px 0 16px; }
-.progress > div { height:100%; background:var(--accent); border-radius:3px; transition:width .3s; }
-.rating { display:flex; gap:6px; margin-top:8px; }
-.rating button { flex:1; padding:10px 4px; font-size:0.85rem; }
-.hidden { display:none !important; }
-small { color:var(--muted); }
+:root {
+  --bg: #ffffff;
+  --card: #f8f9fa;
+  --bordo: #800020;
+  --blue: #1e40af;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --ok: #166534;
+  --border: #e5e7eb;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); }
+.container { max-width: 480px; margin: 0 auto; padding: 16px; }
+h1 { font-size: 1.5rem; margin: 0 0 4px; color: var(--bordo); }
+h2 { font-size: 1.15rem; margin: 0 0 12px; color: var(--blue); }
+.subtitle { color: var(--muted); margin-bottom: 16px; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+button { width: 100%; padding: 13px; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 8px; }
+.btn-primary { background: var(--bordo); color: white; }
+.btn-secondary { background: #e5e7eb; color: var(--text); }
+.btn-blue { background: var(--blue); color: white; }
+.btn-ok { background: var(--ok); color: white; }
+.timer { font-size: 3.2rem; font-weight: 700; text-align: center; margin: 8px 0; color: var(--bordo); }
+.timer.rest { color: var(--blue); }
+.exercise-name { font-size: 1.25rem; font-weight: 700; color: var(--bordo); }
+.meta { color: var(--muted); font-size: 0.95rem; margin: 4px 0 10px; }
+.row { display: flex; gap: 8px; }
+.row button { flex: 1; }
+input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 1rem; margin-top: 4px; }
+.progress { height: 5px; background: #e5e7eb; border-radius: 3px; margin: 8px 0 14px; }
+.progress > div { height: 100%; background: var(--bordo); border-radius: 3px; }
+.rating { display: flex; gap: 5px; margin-top: 6px; flex-wrap: wrap; }
+.rating button { flex: 1; min-width: 70px; padding: 8px 4px; font-size: 0.8rem; }
+.hidden { display: none !important; }
+.ex-list { list-style: none; padding: 0; margin: 0; }
+.ex-list li { padding: 10px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.ex-list li:last-child { border-bottom: none; }
+.badge { background: var(--blue); color: white; font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; }
+.warmup { color: var(--blue); font-weight: 600; }
+small { color: var(--muted); }
 </style>
 </head>
 <body>
 <div class="container">
   <div id="home">
-    <h1>Rutina Gym</h1>
+    <h1>Rutina de hoy</h1>
+    <p class="subtitle">Tren superior + core · incluye precalentamiento</p>
     <div class="card">
-      <p>Perfil cargado: 55 años · 82 kg · 1.68 m · cuidado Aquiles/sóleo</p>
-      <p>Sesión de hoy: <strong id="dayLabel">Tren superior + core</strong></p>
-      <button class="btn-primary" onclick="startSession()">Empezar sesión</button>
+      <h2>Vista previa</h2>
+      <ul class="ex-list" id="previewList"></ul>
     </div>
-    <div class="card">
-      <small>Los datos se guardan solo en este celular.</small>
-    </div>
+    <button class="btn-primary" onclick="startSession()">Empezar sesión</button>
   </div>
 
   <div id="workout" class="hidden">
@@ -52,59 +64,59 @@ small { color:var(--muted); }
     <div class="card">
       <div class="exercise-name" id="exName">—</div>
       <div class="meta" id="exMeta">—</div>
-      <div class="timer work" id="timer">00:00</div>
+      <div class="timer" id="timer">00:00</div>
       <div class="row">
         <button class="btn-secondary" id="btnPause" onclick="toggleTimer()">Pausar</button>
         <button class="btn-primary" onclick="finishSet()">Terminé la serie</button>
       </div>
     </div>
     <div class="card">
-      <label>Peso usado (kg)</label>
-      <input type="number" id="inputWeight" step="0.5" placeholder="ej. 20">
-      <label>Repeticiones hechas</label>
-      <input type="number" id="inputReps" placeholder="ej. 10">
-      <div style="margin-top:10px">
-        <small>Dificultad de esta serie</small>
+      <label>Peso (kg) <small>— tocá solo si cambia</small></label>
+      <input type="number" id="inputWeight" step="0.5">
+      <label style="margin-top:10px; display:block">Repeticiones hechas <small>— por defecto el objetivo</small></label>
+      <input type="number" id="inputReps">
+      <div style="margin-top:12px">
+        <small>Dificultad</small>
         <div class="rating" id="ratingBtns"></div>
       </div>
     </div>
-    <button class="btn-warn" onclick="skipExercise()">Saltar / sustituir ejercicio</button>
+    <button class="btn-secondary" onclick="skipExercise()">Saltar este ejercicio</button>
   </div>
 
   <div id="summary" class="hidden">
     <h2>Sesión terminada</h2>
     <div class="card" id="summaryContent"></div>
-    <button class="btn-primary" onclick="location.reload()">Volver al inicio</button>
+    <button class="btn-primary" onclick="location.reload()">Volver</button>
   </div>
 </div>
 
 <script>
-const ROUTINES = {
-  upper: {
-    name: "Tren superior + core",
-    exercises: [
-      { name: "Remo sentado / mancuerna", sets: 3, reps: "8-10", rest: 90, weight: 20 },
-      { name: "Press de pecho", sets: 3, reps: "8-10", rest: 90, weight: 30 },
-      { name: "Jalón al pecho", sets: 3, reps: "8-10", rest: 75, weight: 35 },
-      { name: "Press de hombro", sets: 3, reps: "8", rest: 75, weight: 15 },
-      { name: "Face pull", sets: 2, reps: "12", rest: 60, weight: 15 },
-      { name: "Curl-up McGill", sets: 2, reps: "8/lado", rest: 45, weight: 0 },
-      { name: "Dead bug", sets: 3, reps: "6/lado", rest: 45, weight: 0 },
-      { name: "Plancha", sets: 2, reps: "30s", rest: 45, weight: 0 },
-      { name: "Bird dog", sets: 2, reps: "8/lado", rest: 40, weight: 0 },
-      { name: "Pallof press", sets: 2, reps: "10/lado", rest: 45, weight: 10 }
-    ]
-  }
+const ROUTINE = {
+  name: "Tren superior + core",
+  exercises: [
+    { name: "Precalentamiento: movilidad de hombros y gato-camello", sets: 1, reps: "8", rest: 20, weight: 0, isWarmup: true },
+    { name: "Precalentamiento: círculos de tobillo + talón lento", sets: 1, reps: "10", rest: 20, weight: 0, isWarmup: true },
+    { name: "Remo sentado / mancuerna", sets: 3, reps: "8-10", rest: 90, weight: 20 },
+    { name: "Press de pecho", sets: 3, reps: "8-10", rest: 90, weight: 30 },
+    { name: "Jalón al pecho", sets: 3, reps: "8-10", rest: 75, weight: 35 },
+    { name: "Press de hombro", sets: 3, reps: "8", rest: 75, weight: 15 },
+    { name: "Face pull", sets: 2, reps: "12", rest: 60, weight: 15 },
+    { name: "Curl-up McGill", sets: 2, reps: "8/lado", rest: 45, weight: 0 },
+    { name: "Dead bug", sets: 3, reps: "6/lado", rest: 45, weight: 0 },
+    { name: "Plancha", sets: 2, reps: "30s", rest: 45, weight: 0 },
+    { name: "Bird dog", sets: 2, reps: "8/lado", rest: 40, weight: 0 },
+    { name: "Pallof press", sets: 2, reps: "10/lado", rest: 45, weight: 10 }
+  ]
 };
 
 let state = {
-  routine: null,
   currentEx: 0,
   currentSet: 1,
   timer: null,
   seconds: 0,
   isRest: false,
   isPaused: false,
+  selectedRating: 3,
   logs: []
 };
 
@@ -116,8 +128,24 @@ const ratings = [
   { label: "Imposible", value: 5 }
 ];
 
+function initPreview() {
+  const list = document.getElementById("previewList");
+  list.innerHTML = "";
+  ROUTINE.exercises.forEach(ex => {
+    const li = document.createElement("li");
+    const left = document.createElement("div");
+    left.innerHTML = (ex.isWarmup ? '<span class="warmup">● </span>' : '') + ex.name +
+      `<br><small>${ex.sets} × ${ex.reps}${ex.weight ? ' · ' + ex.weight + ' kg' : ''}</small>`;
+    const right = document.createElement("span");
+    if (ex.isWarmup) right.className = "badge";
+    right.textContent = ex.isWarmup ? "Calent." : "";
+    li.appendChild(left);
+    if (ex.isWarmup) li.appendChild(right);
+    list.appendChild(li);
+  });
+}
+
 function startSession() {
-  state.routine = JSON.parse(JSON.stringify(ROUTINES.upper));
   state.currentEx = 0;
   state.currentSet = 1;
   state.logs = [];
@@ -127,13 +155,14 @@ function startSession() {
 }
 
 function renderExercise() {
-  const ex = state.routine.exercises[state.currentEx];
+  const ex = ROUTINE.exercises[state.currentEx];
   if (!ex) { endSession(); return; }
+
   document.getElementById("exName").textContent = ex.name;
   document.getElementById("exMeta").textContent = `Serie ${state.currentSet} de ${ex.sets} · objetivo ${ex.reps}`;
-  document.getElementById("inputWeight").value = ex.weight || "";
-  document.getElementById("inputReps").value = "";
-  document.getElementById("progressBar").style.width = ((state.currentEx / state.routine.exercises.length) * 100) + "%";
+  document.getElementById("inputWeight").value = ex.weight || 0;
+  document.getElementById("inputReps").value = ex.reps.split("-")[0].replace("/lado", "").replace("s", "") || "";
+  document.getElementById("progressBar").style.width = ((state.currentEx / ROUTINE.exercises.length) * 100) + "%";
 
   const ratingDiv = document.getElementById("ratingBtns");
   ratingDiv.innerHTML = "";
@@ -151,7 +180,11 @@ function renderExercise() {
 
 function selectRating(val, btn) {
   state.selectedRating = val;
-  document.querySelectorAll("#ratingBtns button").forEach(b => b.classList.remove("btn-ok"));
+  document.querySelectorAll("#ratingBtns button").forEach(b => {
+    b.classList.remove("btn-ok");
+    b.classList.add("btn-secondary");
+  });
+  btn.classList.remove("btn-secondary");
   btn.classList.add("btn-ok");
 }
 
@@ -160,14 +193,11 @@ function startWorkTimer() {
   state.seconds = 0;
   state.isRest = false;
   state.isPaused = false;
-  document.getElementById("timer").className = "timer work";
+  document.getElementById("timer").className = "timer";
   document.getElementById("btnPause").textContent = "Pausar";
   updateTimerDisplay();
   state.timer = setInterval(() => {
-    if (!state.isPaused) {
-      state.seconds++;
-      updateTimerDisplay();
-    }
+    if (!state.isPaused) { state.seconds++; updateTimerDisplay(); }
   }, 1000);
 }
 
@@ -183,10 +213,7 @@ function startRestTimer(restSec) {
     if (!state.isPaused && state.seconds > 0) {
       state.seconds--;
       updateTimerDisplay();
-      if (state.seconds === 0) {
-        clearInterval(state.timer);
-        nextSetOrExercise();
-      }
+      if (state.seconds === 0) { clearInterval(state.timer); nextSetOrExercise(); }
     }
   }, 1000);
 }
@@ -203,22 +230,16 @@ function toggleTimer() {
 }
 
 function finishSet() {
-  const ex = state.routine.exercises[state.currentEx];
+  const ex = ROUTINE.exercises[state.currentEx];
   const weight = parseFloat(document.getElementById("inputWeight").value) || 0;
-  const reps = parseInt(document.getElementById("inputReps").value) || 0;
-  state.logs.push({
-    exercise: ex.name,
-    set: state.currentSet,
-    weight, reps,
-    rating: state.selectedRating,
-    time: state.seconds
-  });
+  const reps = document.getElementById("inputReps").value || ex.reps;
+  state.logs.push({ exercise: ex.name, set: state.currentSet, weight, reps, rating: state.selectedRating });
   clearInterval(state.timer);
   startRestTimer(ex.rest);
 }
 
 function nextSetOrExercise() {
-  const ex = state.routine.exercises[state.currentEx];
+  const ex = ROUTINE.exercises[state.currentEx];
   if (state.currentSet < ex.sets) {
     state.currentSet++;
     renderExercise();
@@ -230,7 +251,7 @@ function nextSetOrExercise() {
 }
 
 function skipExercise() {
-  if (confirm("¿Saltar este ejercicio y pasar al siguiente?")) {
+  if (confirm("¿Saltar este ejercicio?")) {
     state.currentEx++;
     state.currentSet = 1;
     clearInterval(state.timer);
@@ -242,14 +263,16 @@ function endSession() {
   clearInterval(state.timer);
   document.getElementById("workout").classList.add("hidden");
   document.getElementById("summary").classList.remove("hidden");
-  let html = "<p>Registraste " + state.logs.length + " series.</p><ul>";
+  let html = `<p>Completaste ${state.logs.length} series.</p><ul>`;
   state.logs.forEach(l => {
-    html += `<li>${l.exercise} · serie ${l.set}: ${l.weight} kg × ${l.reps} · dificultad ${l.rating}/5</li>`;
+    html += `<li>${l.exercise} · ${l.weight} kg × ${l.reps} · dif. ${l.rating}/5</li>`;
   });
-  html += "</ul><p><small>En la próxima versión esto ajustará automáticamente pesos y repeticiones.</small></p>";
+  html += "</ul>";
   document.getElementById("summaryContent").innerHTML = html;
   localStorage.setItem("lastSession", JSON.stringify({ date: new Date().toISOString(), logs: state.logs }));
 }
+
+initPreview();
 </script>
 </body>
 </html>
