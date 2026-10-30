@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Rutina Gym MVP</title>
+<style>
+:root { --bg:#0f172a; --card:#1e293b; --accent:#38bdf8; --text:#e2e8f0; --muted:#94a3b8; --ok:#22c55e; --warn:#f59e0b; }
+* { box-sizing:border-box; }
+body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--text); }
+.container { max-width:480px; margin:0 auto; padding:16px; }
+h1 { font-size:1.4rem; margin:0 0 8px; }
+h2 { font-size:1.1rem; margin:0 0 12px; color:var(--accent); }
+.card { background:var(--card); border-radius:16px; padding:16px; margin-bottom:12px; }
+button { width:100%; padding:14px; border:none; border-radius:12px; font-size:1rem; font-weight:600; cursor:pointer; margin-top:8px; }
+.btn-primary { background:var(--accent); color:#0f172a; }
+.btn-secondary { background:#334155; color:var(--text); }
+.btn-ok { background:var(--ok); color:#0f172a; }
+.btn-warn { background:var(--warn); color:#0f172a; }
+.timer { font-size:3.5rem; font-weight:700; text-align:center; letter-spacing:-1px; margin:12px 0; }
+.timer.rest { color:var(--warn); }
+.timer.work { color:var(--ok); }
+.exercise-name { font-size:1.3rem; font-weight:700; margin-bottom:4px; }
+.meta { color:var(--muted); font-size:0.95rem; margin-bottom:12px; }
+.row { display:flex; gap:8px; }
+.row button { flex:1; }
+input, select { width:100%; padding:12px; border-radius:10px; border:1px solid #334155; background:#0f172a; color:var(--text); font-size:1rem; margin-top:6px; }
+.progress { height:6px; background:#334155; border-radius:3px; margin:8px 0 16px; }
+.progress > div { height:100%; background:var(--accent); border-radius:3px; transition:width .3s; }
+.rating { display:flex; gap:6px; margin-top:8px; }
+.rating button { flex:1; padding:10px 4px; font-size:0.85rem; }
+.hidden { display:none !important; }
+small { color:var(--muted); }
+</style>
+</head>
+<body>
+<div class="container">
+  <div id="home">
+    <h1>Rutina Gym</h1>
+    <div class="card">
+      <p>Perfil cargado: 55 años · 82 kg · 1.68 m · cuidado Aquiles/sóleo</p>
+      <p>Sesión de hoy: <strong id="dayLabel">Tren superior + core</strong></p>
+      <button class="btn-primary" onclick="startSession()">Empezar sesión</button>
+    </div>
+    <div class="card">
+      <small>Los datos se guardan solo en este celular.</small>
+    </div>
+  </div>
+
+  <div id="workout" class="hidden">
+    <div class="progress"><div id="progressBar" style="width:0%"></div></div>
+    <div class="card">
+      <div class="exercise-name" id="exName">—</div>
+      <div class="meta" id="exMeta">—</div>
+      <div class="timer work" id="timer">00:00</div>
+      <div class="row">
+        <button class="btn-secondary" id="btnPause" onclick="toggleTimer()">Pausar</button>
+        <button class="btn-primary" onclick="finishSet()">Terminé la serie</button>
+      </div>
+    </div>
+    <div class="card">
+      <label>Peso usado (kg)</label>
+      <input type="number" id="inputWeight" step="0.5" placeholder="ej. 20">
+      <label>Repeticiones hechas</label>
+      <input type="number" id="inputReps" placeholder="ej. 10">
+      <div style="margin-top:10px">
+        <small>Dificultad de esta serie</small>
+        <div class="rating" id="ratingBtns"></div>
+      </div>
+    </div>
+    <button class="btn-warn" onclick="skipExercise()">Saltar / sustituir ejercicio</button>
+  </div>
+
+  <div id="summary" class="hidden">
+    <h2>Sesión terminada</h2>
+    <div class="card" id="summaryContent"></div>
+    <button class="btn-primary" onclick="location.reload()">Volver al inicio</button>
+  </div>
+</div>
+
+<script>
+const ROUTINES = {
+  upper: {
+    name: "Tren superior + core",
+    exercises: [
+      { name: "Remo sentado / mancuerna", sets: 3, reps: "8-10", rest: 90, weight: 20 },
+      { name: "Press de pecho", sets: 3, reps: "8-10", rest: 90, weight: 30 },
+      { name: "Jalón al pecho", sets: 3, reps: "8-10", rest: 75, weight: 35 },
+      { name: "Press de hombro", sets: 3, reps: "8", rest: 75, weight: 15 },
+      { name: "Face pull", sets: 2, reps: "12", rest: 60, weight: 15 },
+      { name: "Curl-up McGill", sets: 2, reps: "8/lado", rest: 45, weight: 0 },
+      { name: "Dead bug", sets: 3, reps: "6/lado", rest: 45, weight: 0 },
+      { name: "Plancha", sets: 2, reps: "30s", rest: 45, weight: 0 },
+      { name: "Bird dog", sets: 2, reps: "8/lado", rest: 40, weight: 0 },
+      { name: "Pallof press", sets: 2, reps: "10/lado", rest: 45, weight: 10 }
+    ]
+  }
+};
+
+let state = {
+  routine: null,
+  currentEx: 0,
+  currentSet: 1,
+  timer: null,
+  seconds: 0,
+  isRest: false,
+  isPaused: false,
+  logs: []
+};
+
+const ratings = [
+  { label: "Muy fácil", value: 1 },
+  { label: "Fácil", value: 2 },
+  { label: "Justo", value: 3 },
+  { label: "Difícil", value: 4 },
+  { label: "Imposible", value: 5 }
+];
+
+function startSession() {
+  state.routine = JSON.parse(JSON.stringify(ROUTINES.upper));
+  state.currentEx = 0;
+  state.currentSet = 1;
+  state.logs = [];
+  document.getElementById("home").classList.add("hidden");
+  document.getElementById("workout").classList.remove("hidden");
+  renderExercise();
+}
+
+function renderExercise() {
+  const ex = state.routine.exercises[state.currentEx];
+  if (!ex) { endSession(); return; }
+  document.getElementById("exName").textContent = ex.name;
+  document.getElementById("exMeta").textContent = `Serie ${state.currentSet} de ${ex.sets} · objetivo ${ex.reps}`;
+  document.getElementById("inputWeight").value = ex.weight || "";
+  document.getElementById("inputReps").value = "";
+  document.getElementById("progressBar").style.width = ((state.currentEx / state.routine.exercises.length) * 100) + "%";
+
+  const ratingDiv = document.getElementById("ratingBtns");
+  ratingDiv.innerHTML = "";
+  ratings.forEach(r => {
+    const b = document.createElement("button");
+    b.className = "btn-secondary";
+    b.textContent = r.label;
+    b.onclick = () => selectRating(r.value, b);
+    ratingDiv.appendChild(b);
+  });
+  state.selectedRating = 3;
+
+  startWorkTimer();
+}
+
+function selectRating(val, btn) {
+  state.selectedRating = val;
+  document.querySelectorAll("#ratingBtns button").forEach(b => b.classList.remove("btn-ok"));
+  btn.classList.add("btn-ok");
+}
+
+function startWorkTimer() {
+  clearInterval(state.timer);
+  state.seconds = 0;
+  state.isRest = false;
+  state.isPaused = false;
+  document.getElementById("timer").className = "timer work";
+  document.getElementById("btnPause").textContent = "Pausar";
+  updateTimerDisplay();
+  state.timer = setInterval(() => {
+    if (!state.isPaused) {
+      state.seconds++;
+      updateTimerDisplay();
+    }
+  }, 1000);
+}
+
+function startRestTimer(restSec) {
+  clearInterval(state.timer);
+  state.seconds = restSec;
+  state.isRest = true;
+  state.isPaused = false;
+  document.getElementById("timer").className = "timer rest";
+  document.getElementById("btnPause").textContent = "Pausar";
+  updateTimerDisplay();
+  state.timer = setInterval(() => {
+    if (!state.isPaused && state.seconds > 0) {
+      state.seconds--;
+      updateTimerDisplay();
+      if (state.seconds === 0) {
+        clearInterval(state.timer);
+        nextSetOrExercise();
+      }
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(state.seconds / 60).toString().padStart(2, "0");
+  const s = (state.seconds % 60).toString().padStart(2, "0");
+  document.getElementById("timer").textContent = m + ":" + s;
+}
+
+function toggleTimer() {
+  state.isPaused = !state.isPaused;
+  document.getElementById("btnPause").textContent = state.isPaused ? "Reanudar" : "Pausar";
+}
+
+function finishSet() {
+  const ex = state.routine.exercises[state.currentEx];
+  const weight = parseFloat(document.getElementById("inputWeight").value) || 0;
+  const reps = parseInt(document.getElementById("inputReps").value) || 0;
+  state.logs.push({
+    exercise: ex.name,
+    set: state.currentSet,
+    weight, reps,
+    rating: state.selectedRating,
+    time: state.seconds
+  });
+  clearInterval(state.timer);
+  startRestTimer(ex.rest);
+}
+
+function nextSetOrExercise() {
+  const ex = state.routine.exercises[state.currentEx];
+  if (state.currentSet < ex.sets) {
+    state.currentSet++;
+    renderExercise();
+  } else {
+    state.currentEx++;
+    state.currentSet = 1;
+    renderExercise();
+  }
+}
+
+function skipExercise() {
+  if (confirm("¿Saltar este ejercicio y pasar al siguiente?")) {
+    state.currentEx++;
+    state.currentSet = 1;
+    clearInterval(state.timer);
+    renderExercise();
+  }
+}
+
+function endSession() {
+  clearInterval(state.timer);
+  document.getElementById("workout").classList.add("hidden");
+  document.getElementById("summary").classList.remove("hidden");
+  let html = "<p>Registraste " + state.logs.length + " series.</p><ul>";
+  state.logs.forEach(l => {
+    html += `<li>${l.exercise} · serie ${l.set}: ${l.weight} kg × ${l.reps} · dificultad ${l.rating}/5</li>`;
+  });
+  html += "</ul><p><small>En la próxima versión esto ajustará automáticamente pesos y repeticiones.</small></p>";
+  document.getElementById("summaryContent").innerHTML = html;
+  localStorage.setItem("lastSession", JSON.stringify({ date: new Date().toISOString(), logs: state.logs }));
+}
+</script>
+</body>
+</html>
