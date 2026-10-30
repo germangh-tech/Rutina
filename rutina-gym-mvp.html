@@ -290,4 +290,107 @@ function goNext() {
   nextSetOrExercise();
 }
 
-function startRest
+function startRest(sec) {
+  state.seconds = sec; state.isPaused = false;
+  document.getElementById("timer").className = "timer rest";
+  document.getElementById("btnPause").disabled = false;
+  document.getElementById("btnPause").textContent = "Pausar";
+  updateTimer();
+  state.timer = setInterval(() => {
+    if (!state.isPaused && state.seconds > 0) {
+      state.seconds--;
+      updateTimer();
+      if (state.seconds === 0) {
+        clearInterval(state.timer);
+        playBeep();
+        // Auto-advance only if user hasn't clicked yet
+        if (!document.getElementById("btnNext").classList.contains("hidden")) {
+          goNext();
+        }
+      }
+    }
+  }, 1000);
+}
+
+function nextSetOrExercise() {
+  const ex = ROUTINE.exercises[state.currentEx];
+  if (state.currentSet < ex.sets) {
+    state.currentSet++;
+  } else {
+    state.currentEx++;
+    state.currentSet = 1;
+    state.chosenOption = null;
+  }
+  renderExercise();
+}
+
+function skipExercise() {
+  if (confirm("¿Saltar este ejercicio?")) {
+    state.currentEx++; state.currentSet = 1; state.chosenOption = null;
+    clearInterval(state.timer);
+    renderExercise();
+  }
+}
+
+function endSession() {
+  clearInterval(state.timer);
+  document.getElementById("workout").classList.add("hidden");
+  document.getElementById("summary").classList.remove("hidden");
+
+  // Group logs by exercise
+  const grouped = {};
+  state.logs.forEach(l => {
+    if (!grouped[l.exercise]) grouped[l.exercise] = { sets: 0, reps: [], weights: [], ratings: [] };
+    grouped[l.exercise].sets++;
+    grouped[l.exercise].reps.push(l.reps);
+    grouped[l.exercise].weights.push(l.weight);
+    grouped[l.exercise].ratings.push(l.rating);
+  });
+
+  let html = `<h2 style="margin-top:0">Lo que hiciste hoy</h2><ul class="ex-list">`;
+  Object.keys(grouped).forEach(name => {
+    const g = grouped[name];
+    const avgWeight = g.weights.filter(w => w > 0).length
+      ? (g.weights.reduce((a,b)=>a+b,0) / g.weights.filter(w=>w>0).length).toFixed(1)
+      : 0;
+    const avgRating = (g.ratings.reduce((a,b)=>a+b,0) / g.ratings.length).toFixed(1);
+    const repsDisplay = [...new Set(g.reps)].join(" / ");
+    html += `<li><strong>${name}</strong><br><small>${g.sets} series · ${repsDisplay}${avgWeight > 0 ? " · " + avgWeight + " kg" : ""} · dif. prom. ${avgRating}/5</small></li>`;
+  });
+  html += `</ul><p style="margin-top:16px"><strong>Próxima rutina guardada</strong><br><small>Los pesos y repeticiones se ajustaron según tus calificaciones. La próxima vez que abras la app vas a ver la versión actualizada.</small></p>`;
+
+  document.getElementById("summaryContent").innerHTML = html;
+
+  // Build next routine based on results
+  const nextRoutine = JSON.parse(JSON.stringify(ROUTINE));
+  nextRoutine.exercises.forEach(ex => {
+    const key = state.chosenOption && ex.options && ex.options.includes(state.chosenOption) ? state.chosenOption : ex.name;
+    const g = grouped[key] || grouped[ex.name];
+    if (!g) return;
+    const avgRating = g.ratings.reduce((a,b)=>a+b,0) / g.ratings.length;
+    if (ex.weight > 0) {
+      if (avgRating <= 2.2) ex.weight = Math.round(ex.weight * 1.05 * 2) / 2;
+      else if (avgRating >= 4) ex.weight = Math.max(0, Math.round(ex.weight * 0.92 * 2) / 2);
+    }
+  });
+
+  localStorage.setItem("nextRoutine", JSON.stringify(nextRoutine));
+  localStorage.setItem("lastSession", JSON.stringify({ date: new Date().toISOString(), grouped }));
+}
+
+// Load saved next routine if exists
+(function loadSaved() {
+  const saved = localStorage.getItem("nextRoutine");
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (parsed && parsed.exercises) {
+        ROUTINE.exercises = parsed.exercises;
+      }
+    } catch(e) {}
+  }
+  initPreview();
+})();
+</script>
+</body>
+</html>
