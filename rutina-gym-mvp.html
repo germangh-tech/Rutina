@@ -41,7 +41,7 @@ label { display:block; margin-top:10px; font-size:0.9rem; }
 <div class="container">
   <div id="home">
     <h1>Rutina de hoy</h1>
-    <p class="subtitle">Tren superior + core · incluye precalentamiento</p>
+    <p class="subtitle">Día 2 · Piernas A · fuerza + sóleo + pogo</p>
     <div class="card">
       <h2>Vista previa</h2>
       <ul class="ex-list" id="previewList"></ul>
@@ -82,20 +82,18 @@ label { display:block; margin-top:10px; font-size:0.9rem; }
 
 <script>
 const ROUTINE = {
-  name: "Tren superior + core",
+  name: "Día 2 · Piernas A",
   exercises: [
-    { name: "Precalentamiento: movilidad de hombros y gato-camello", sets: 1, reps: "8", rest: 20, weight: 0, timed: false, isWarmup: true },
-    { name: "Precalentamiento: círculos de tobillo + talón lento", sets: 1, reps: "10", rest: 20, weight: 0, timed: false, isWarmup: true },
-    { name: "Remo", options: ["Remo sentado (máquina)", "Remo con mancuerna"], sets: 3, reps: "8-10", rest: 90, weight: 20, unilateral: true, timed: false },
-    { name: "Press de pecho", sets: 3, reps: "8-10", rest: 90, weight: 30, timed: false },
-    { name: "Jalón al pecho", sets: 3, reps: "8-10", rest: 75, weight: 35, timed: false },
-    { name: "Press de hombro", sets: 3, reps: "8", rest: 75, weight: 15, unilateral: true, timed: false },
-    { name: "Face pull", sets: 2, reps: "12", rest: 60, weight: 15, timed: false },
-    { name: "Curl-up McGill", sets: 2, reps: "8/lado", rest: 45, weight: 0, timed: false },
-    { name: "Dead bug", sets: 3, reps: "6/lado", rest: 45, weight: 0, timed: false },
-    { name: "Plancha", sets: 2, reps: "30", rest: 45, weight: 0, timed: true },
-    { name: "Bird dog", sets: 2, reps: "8/lado", rest: 40, weight: 0, timed: false },
-    { name: "Pallof press", sets: 2, reps: "10/lado", rest: 45, weight: 10, timed: false }
+    { name: "Calentamiento: bici suave + círculos de tobillo + talón lento", sets: 1, reps: "8-10", rest: 20, weight: 0, timed: false, isWarmup: true },
+    { name: "Sentadilla", options: ["Sentadilla goblet", "Prensa"], sets: 3, reps: "8-10", rest: 90, weight: 20, timed: false },
+    { name: "Peso muerto rumano", sets: 3, reps: "8", rest: 90, weight: 30, timed: false },
+    { name: "Zancada o step-up", options: ["Zancada estática", "Step-up"], sets: 3, reps: "8 por pierna", rest: 75, weight: 10, unilateral: true, timed: false },
+    { name: "Puente de glúteos", sets: 3, reps: "10", rest: 60, weight: 0, timed: false },
+    { name: "Elevación de talón sentado (sóleo)", sets: 3, reps: "12", rest: 60, weight: 15, timed: false },
+    { name: "Elevación de talón de pie", sets: 3, reps: "10", rest: 60, weight: 0, timed: false },
+    { name: "Pogo jumps (rebote corto)", sets: 3, reps: "20", rest: 45, weight: 0, timed: true },
+    { name: "Plancha lateral", sets: 2, reps: "20-30", rest: 40, weight: 0, timed: true },
+    { name: "Bird dog", sets: 2, reps: "6 por lado", rest: 40, weight: 0, timed: false }
   ]
 };
 
