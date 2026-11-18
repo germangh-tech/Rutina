@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Rutina Gym</title>
+<title>Rutinas Gym</title>
 <style>
 :root { --bg:#fff; --card:#f8f9fa; --bordo:#800020; --blue:#1e40af; --text:#1f2937; --muted:#6b7280; --ok:#166534; --border:#e5e7eb; }
 * { box-sizing:border-box; }
@@ -35,18 +35,40 @@ input, select { width:100%; padding:10px; border-radius:8px; border:1px solid va
 .warmup { color:var(--blue); font-weight:600; }
 small { color:var(--muted); }
 label { display:block; margin-top:10px; font-size:0.9rem; }
+.routine-btn { text-align:left; padding:16px; }
+.routine-btn strong { display:block; color:var(--bordo); font-size:1.1rem; }
 </style>
 </head>
 <body>
 <div class="container">
   <div id="home">
-    <h1>Rutina de hoy</h1>
-    <p class="subtitle">Día 2 · Piernas A · fuerza + sóleo + pogo</p>
+    <h1>Elegí tu rutina</h1>
+    <p class="subtitle">Tres opciones · conservan todas las funciones anteriores</p>
+    <div class="card">
+      <button class="routine-btn" onclick="selectRoutine('upper')">
+        <strong>1. Tren superior + zona media</strong>
+        <small>Énfasis en abdominales y lumbar. Ideal si corriste o vas a correr.</small>
+      </button>
+      <button class="routine-btn" onclick="selectRoutine('legs')">
+        <strong>2. Fuerza de piernas</strong>
+        <small>Sentadilla, hinge, sóleo y control del tendón.</small>
+      </button>
+      <button class="routine-btn" onclick="selectRoutine('dynamic')">
+        <strong>3. Mixta dinámica</strong>
+        <small>Abdominales + piernas más dinámica. Énfasis en pantorrillas y sóleo.</small>
+      </button>
+    </div>
+  </div>
+
+  <div id="preview" class="hidden">
+    <h1 id="previewTitle">Rutina</h1>
+    <p class="subtitle" id="previewSub"></p>
     <div class="card">
       <h2>Vista previa</h2>
       <ul class="ex-list" id="previewList"></ul>
     </div>
     <button class="btn-primary" onclick="startSession()">Empezar sesión</button>
+    <button class="btn-secondary" onclick="backHome()">Volver a elegir</button>
   </div>
 
   <div id="workout" class="hidden">
@@ -76,27 +98,65 @@ label { display:block; margin-top:10px; font-size:0.9rem; }
   <div id="summary" class="hidden">
     <h2>Sesión terminada</h2>
     <div class="card" id="summaryContent"></div>
-    <button class="btn-primary" onclick="location.reload()">Volver</button>
+    <button class="btn-primary" onclick="location.reload()">Volver al inicio</button>
   </div>
 </div>
 
 <script>
-const ROUTINE = {
-  name: "Día 2 · Piernas A",
-  exercises: [
-    { name: "Calentamiento: bici suave + círculos de tobillo + talón lento", sets: 1, reps: "8-10", rest: 20, weight: 0, timed: false, isWarmup: true },
-    { name: "Sentadilla", options: ["Sentadilla goblet", "Prensa"], sets: 3, reps: "8-10", rest: 90, weight: 20, timed: false },
-    { name: "Peso muerto rumano", sets: 3, reps: "8", rest: 90, weight: 30, timed: false },
-    { name: "Zancada o step-up", options: ["Zancada estática", "Step-up"], sets: 3, reps: "8 por pierna", rest: 75, weight: 10, unilateral: true, timed: false },
-    { name: "Puente de glúteos", sets: 3, reps: "10", rest: 60, weight: 0, timed: false },
-    { name: "Elevación de talón sentado (sóleo)", sets: 3, reps: "12", rest: 60, weight: 15, timed: false },
-    { name: "Elevación de talón de pie", sets: 3, reps: "10", rest: 60, weight: 0, timed: false },
-    { name: "Pogo jumps (rebote corto)", sets: 3, reps: "20", rest: 45, weight: 0, timed: true },
-    { name: "Plancha lateral", sets: 2, reps: "20-30", rest: 40, weight: 0, timed: true },
-    { name: "Bird dog", sets: 2, reps: "6 por lado", rest: 40, weight: 0, timed: false }
-  ]
+const ROUTINES = {
+  upper: {
+    name: "Tren superior + zona media",
+    subtitle: "Énfasis en abdominales y lumbar",
+    exercises: [
+      { name: "Calentamiento: círculos de brazo + gato-camello", sets: 1, reps: "8", rest: 20, weight: 0, timed: false, isWarmup: true },
+      { name: "Remo", options: ["Remo sentado (máquina)", "Remo con mancuerna"], sets: 3, reps: "8-10", rest: 90, weight: 20, unilateral: true, timed: false },
+      { name: "Press de pecho", options: ["Press mancuernas", "Press máquina"], sets: 3, reps: "8-10", rest: 90, weight: 30, timed: false },
+      { name: "Jalón al pecho", sets: 3, reps: "8-10", rest: 75, weight: 35, timed: false },
+      { name: "Press de hombro", sets: 3, reps: "8", rest: 75, weight: 15, unilateral: true, timed: false },
+      { name: "Face pull", sets: 2, reps: "12", rest: 60, weight: 15, timed: false },
+      { name: "Curl-up McGill", sets: 3, reps: "8 por lado", rest: 45, weight: 0, timed: false },
+      { name: "Dead bug", sets: 3, reps: "6 por lado", rest: 45, weight: 0, timed: false },
+      { name: "Plancha", sets: 3, reps: "30", rest: 45, weight: 0, timed: true },
+      { name: "Plancha lateral", sets: 2, reps: "20-25", rest: 40, weight: 0, timed: true },
+      { name: "Bird dog", sets: 2, reps: "8 por lado", rest: 40, weight: 0, timed: false },
+      { name: "Pallof press", sets: 2, reps: "10 por lado", rest: 45, weight: 10, timed: false }
+    ]
+  },
+  legs: {
+    name: "Fuerza de piernas",
+    subtitle: "Sentadilla, hinge, sóleo y control del tendón",
+    exercises: [
+      { name: "Calentamiento: bici + círculos de tobillo + talón lento", sets: 1, reps: "8-10", rest: 20, weight: 0, timed: false, isWarmup: true },
+      { name: "Sentadilla", options: ["Sentadilla goblet", "Prensa"], sets: 3, reps: "8-10", rest: 90, weight: 20, timed: false },
+      { name: "Peso muerto rumano", sets: 3, reps: "8", rest: 90, weight: 30, timed: false },
+      { name: "Zancada o step-up", options: ["Zancada estática", "Step-up"], sets: 3, reps: "8 por pierna", rest: 75, weight: 10, unilateral: true, timed: false },
+      { name: "Puente de glúteos", sets: 3, reps: "10", rest: 60, weight: 0, timed: false },
+      { name: "Elevación de talón sentado (sóleo)", sets: 3, reps: "12", rest: 60, weight: 15, timed: false },
+      { name: "Elevación de talón de pie", sets: 3, reps: "10", rest: 60, weight: 0, timed: false },
+      { name: "Plancha lateral", sets: 2, reps: "20-30", rest: 40, weight: 0, timed: true },
+      { name: "Bird dog", sets: 2, reps: "6 por lado", rest: 40, weight: 0, timed: false }
+    ]
+  },
+  dynamic: {
+    name: "Mixta dinámica",
+    subtitle: "Abdominales + piernas más dinámica · énfasis pantorrillas y sóleo",
+    exercises: [
+      { name: "Calentamiento: movilidad tobillo + talón-punta", sets: 1, reps: "10", rest: 15, weight: 0, timed: false, isWarmup: true },
+      { name: "Sentadilla corporal controlada", sets: 3, reps: "12", rest: 45, weight: 0, timed: false },
+      { name: "Zancada dinámica o step-up suave", options: ["Zancada atrás", "Step-up bajo"], sets: 3, reps: "8 por pierna", rest: 45, weight: 0, unilateral: true, timed: false },
+      { name: "Puente de glúteos", sets: 3, reps: "12", rest: 40, weight: 0, timed: false },
+      { name: "Elevación de talón sentado (sóleo)", sets: 3, reps: "15", rest: 40, weight: 0, timed: false },
+      { name: "Elevación de talón de pie (controlada)", sets: 3, reps: "12", rest: 40, weight: 0, timed: false },
+      { name: "Pogo suave o rebote corto", sets: 3, reps: "15", rest: 30, weight: 0, timed: true },
+      { name: "Dead bug", sets: 2, reps: "6 por lado", rest: 30, weight: 0, timed: false },
+      { name: "Plancha", sets: 2, reps: "25", rest: 30, weight: 0, timed: true },
+      { name: "Bird dog", sets: 2, reps: "6 por lado", rest: 30, weight: 0, timed: false }
+    ]
+  }
 };
 
+let currentRoutineKey = null;
+let ROUTINE = null;
 let state = { currentEx: 0, currentSet: 1, timer: null, seconds: 0, isPaused: false, selectedRating: 3, logs: [], chosenOption: null };
 
 const ratings = [
@@ -117,6 +177,24 @@ function playBeep() {
   } catch(e) {}
 }
 
+function selectRoutine(key) {
+  currentRoutineKey = key;
+  ROUTINE = JSON.parse(JSON.stringify(ROUTINES[key]));
+  // Load any saved adjustments for this routine
+  const saved = localStorage.getItem("nextRoutine_" + key);
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (parsed && parsed.exercises) ROUTINE.exercises = parsed.exercises;
+    } catch(e) {}
+  }
+  document.getElementById("previewTitle").textContent = ROUTINE.name;
+  document.getElementById("previewSub").textContent = ROUTINE.subtitle;
+  initPreview();
+  document.getElementById("home").classList.add("hidden");
+  document.getElementById("preview").classList.remove("hidden");
+}
+
 function initPreview() {
   const list = document.getElementById("previewList");
   list.innerHTML = "";
@@ -129,9 +207,14 @@ function initPreview() {
   });
 }
 
+function backHome() {
+  document.getElementById("preview").classList.add("hidden");
+  document.getElementById("home").classList.remove("hidden");
+}
+
 function startSession() {
   state.currentEx = 0; state.currentSet = 1; state.logs = []; state.chosenOption = null;
-  document.getElementById("home").classList.add("hidden");
+  document.getElementById("preview").classList.add("hidden");
   document.getElementById("workout").classList.remove("hidden");
   renderExercise();
 }
@@ -144,7 +227,6 @@ function renderExercise() {
   document.getElementById("exName").textContent = displayName;
   document.getElementById("exMeta").textContent = `Serie ${state.currentSet} de ${ex.sets} · objetivo ${ex.reps}${ex.timed ? " s" : ""}`;
 
-  // Choice
   const choice = document.getElementById("choiceArea");
   choice.innerHTML = "";
   if (ex.options && state.currentSet === 1) {
@@ -155,7 +237,6 @@ function renderExercise() {
     state.chosenOption = sel.value;
   }
 
-  // Fields
   const wArea = document.getElementById("weightArea");
   const rArea = document.getElementById("repsArea");
   wArea.innerHTML = ""; rArea.innerHTML = "";
@@ -163,14 +244,13 @@ function renderExercise() {
   if (ex.timed) {
     rArea.innerHTML = `<label>Tiempo (segundos)</label><input type="number" id="inputReps" value="${ex.reps}">`;
   } else if (ex.weight > 0) {
-    const label = ex.unilateral ? "Peso por brazo (kg)" : "Peso (kg)";
+    const label = ex.unilateral ? "Peso por brazo/pierna (kg)" : "Peso (kg)";
     wArea.innerHTML = `<label>${label} <small>— tocá solo si cambia</small></label><input type="number" id="inputWeight" step="0.5" value="${ex.weight}">`;
-    rArea.innerHTML = `<label>Repeticiones hechas</label><input type="number" id="inputReps" value="${ex.reps.split("-")[0].replace("/lado","")}">`;
+    rArea.innerHTML = `<label>Repeticiones hechas</label><input type="number" id="inputReps" value="${ex.reps.split("-")[0].replace("/lado","").replace(" por pierna","")}">`;
   } else {
-    rArea.innerHTML = `<label>Repeticiones hechas</label><input type="number" id="inputReps" value="${ex.reps.split("-")[0].replace("/lado","")}">`;
+    rArea.innerHTML = `<label>Repeticiones hechas</label><input type="number" id="inputReps" value="${ex.reps.split("-")[0].replace("/lado","").replace(" por pierna","")}">`;
   }
 
-  // Ratings
   const ratingDiv = document.getElementById("ratingBtns");
   ratingDiv.innerHTML = "";
   ratings.forEach(r => {
@@ -193,6 +273,8 @@ function renderExercise() {
     document.getElementById("btnPause").disabled = true;
     document.getElementById("btnPause").textContent = "—";
   }
+  document.getElementById("btnNext").classList.add("hidden");
+  document.getElementById("btnFinish").classList.remove("hidden");
 }
 
 function selectRating(val, btn) {
@@ -220,8 +302,6 @@ function startRest(sec) {
   document.getElementById("timer").className = "timer rest";
   document.getElementById("btnPause").disabled = false;
   document.getElementById("btnPause").textContent = "Pausar";
-  document.getElementById("btnFinish").textContent = "Descansando...";
-  document.getElementById("btnFinish").disabled = true;
   updateTimer();
   state.timer = setInterval(() => {
     if (!state.isPaused && state.seconds > 0) {
@@ -230,24 +310,10 @@ function startRest(sec) {
       if (state.seconds === 0) {
         clearInterval(state.timer);
         playBeep();
-        nextSetOrExercise();
+        if (!document.getElementById("btnNext").classList.contains("hidden")) goNext();
       }
     }
   }, 1000);
-}
-
-function nextSetOrExercise() {
-  const ex = ROUTINE.exercises[state.currentEx];
-  if (!ex) { endSession(); return; }
-
-  if (state.currentSet < ex.sets) {
-    state.currentSet++;
-  } else {
-    state.currentEx++;
-    state.currentSet = 1;
-    state.chosenOption = null;
-  }
-  renderExercise();
 }
 
 function updateTimer() {
@@ -275,7 +341,6 @@ function finishSet() {
   clearInterval(state.timer);
   document.getElementById("btnFinish").classList.add("hidden");
   document.getElementById("btnNext").classList.remove("hidden");
-  document.getElementById("btnNext").textContent = "Siguiente";
   startRest(ex.rest);
 }
 
@@ -288,30 +353,9 @@ function goNext() {
   nextSetOrExercise();
 }
 
-function startRest(sec) {
-  state.seconds = sec; state.isPaused = false;
-  document.getElementById("timer").className = "timer rest";
-  document.getElementById("btnPause").disabled = false;
-  document.getElementById("btnPause").textContent = "Pausar";
-  updateTimer();
-  state.timer = setInterval(() => {
-    if (!state.isPaused && state.seconds > 0) {
-      state.seconds--;
-      updateTimer();
-      if (state.seconds === 0) {
-        clearInterval(state.timer);
-        playBeep();
-        // Auto-advance only if user hasn't clicked yet
-        if (!document.getElementById("btnNext").classList.contains("hidden")) {
-          goNext();
-        }
-      }
-    }
-  }, 1000);
-}
-
 function nextSetOrExercise() {
   const ex = ROUTINE.exercises[state.currentEx];
+  if (!ex) { endSession(); return; }
   if (state.currentSet < ex.sets) {
     state.currentSet++;
   } else {
@@ -335,7 +379,6 @@ function endSession() {
   document.getElementById("workout").classList.add("hidden");
   document.getElementById("summary").classList.remove("hidden");
 
-  // Group logs by exercise
   const grouped = {};
   state.logs.forEach(l => {
     if (!grouped[l.exercise]) grouped[l.exercise] = { sets: 0, reps: [], weights: [], ratings: [] };
@@ -355,40 +398,13 @@ function endSession() {
     const repsDisplay = [...new Set(g.reps)].join(" / ");
     html += `<li><strong>${name}</strong><br><small>${g.sets} series · ${repsDisplay}${avgWeight > 0 ? " · " + avgWeight + " kg" : ""} · dif. prom. ${avgRating}/5</small></li>`;
   });
-  html += `</ul><p style="margin-top:16px"><strong>Próxima rutina guardada</strong><br><small>Los pesos y repeticiones se ajustaron según tus calificaciones. La próxima vez que abras la app vas a ver la versión actualizada.</small></p>`;
-
+  html += `</ul><p style="margin-top:16px"><strong>Próxima rutina guardada</strong><br><small>Los ajustes de peso quedan listos para la próxima vez que elijas esta misma rutina.</small></p>`;
   document.getElementById("summaryContent").innerHTML = html;
 
-  // Build next routine based on results
-  const nextRoutine = JSON.parse(JSON.stringify(ROUTINE));
-  nextRoutine.exercises.forEach(ex => {
-    const key = state.chosenOption && ex.options && ex.options.includes(state.chosenOption) ? state.chosenOption : ex.name;
-    const g = grouped[key] || grouped[ex.name];
-    if (!g) return;
-    const avgRating = g.ratings.reduce((a,b)=>a+b,0) / g.ratings.length;
-    if (ex.weight > 0) {
-      if (avgRating <= 2.2) ex.weight = Math.round(ex.weight * 1.05 * 2) / 2;
-      else if (avgRating >= 4) ex.weight = Math.max(0, Math.round(ex.weight * 0.92 * 2) / 2);
-    }
-  });
-
-  localStorage.setItem("nextRoutine", JSON.stringify(nextRoutine));
-  localStorage.setItem("lastSession", JSON.stringify({ date: new Date().toISOString(), grouped }));
+  // Save adjusted routine for next time
+  localStorage.setItem("nextRoutine_" + currentRoutineKey, JSON.stringify(ROUTINE));
+  localStorage.setItem("lastSession_" + currentRoutineKey, JSON.stringify({ date: new Date().toISOString(), grouped }));
 }
-
-// Load saved next routine if exists
-(function loadSaved() {
-  const saved = localStorage.getItem("nextRoutine");
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      if (parsed && parsed.exercises) {
-        ROUTINE.exercises = parsed.exercises;
-      }
-    } catch(e) {}
-  }
-  initPreview();
-})();
 </script>
 </body>
 </html>
